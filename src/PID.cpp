@@ -26,15 +26,19 @@ void PID::Init(double Kp_, double Ki_, double Kd_) {
   PID::p_err = 0.0;
 
   // init twiddling params
-  set_twiddle = false;
-  dp = {1.0, 1.0, 1.0};
+  set_twiddle = true;
+  dp = {0.05*Kp, 0.05*Ki, 0.05*Kd};
   total_err = 0;
   step = 1;
   param_index = 2;
   best_err = std::numeric_limits<double>::max();
-  // tolerance = 0.0001;
-  // eval_phase = true;
-  // ajust_phase = false;
+  n_ajust = 100;
+  n_eval = 200;
+  tried_adding = false;
+  tried_subtracting = false;
+  tolerance = 0.001;
+  eval_phase = true;
+  ajust_phase = false;
 
 }
 
@@ -58,13 +62,23 @@ void PID::UpdateError(double cte) {
   //   std::cout << "total error: " << total_err << std::endl;
   //   std::cout << "best error: " << best_err << std::endl;
   // }
+  // if (step % )
 
   // update total error only if we're past number of settle steps
   if (step % (n_ajust + n_eval) > n_ajust){
       total_err += pow(cte,2);
   }
+  // // collect error data for start tuning  
+  // if (step % (n_ajust + n_eval) <= n_ajust){
+  //   best_err += pow(cte,2);
+  // }
+  // if (step % (n_ajust + n_eval) == 0){
+  //   best_err /= n_ajust;
+  // }
   // last step in twiddle loop... twiddle it?
-  if (set_twiddle && step < n_ajust + n_eval){
+  // if (set_twiddle && ajust_phase && step < n_ajust + n_eval){
+  if (set_twiddle && step %(n_ajust + n_eval) == 0 ){
+      // best_err /= n_ajust;
       std::cout << "step: " << step << std::endl;
       std::cout << "total error: " << total_err << std::endl;
       std::cout << "best error: " << best_err << std::endl;
@@ -73,6 +87,8 @@ void PID::UpdateError(double cte) {
           best_err = total_err;
           if (step !=  n_ajust + n_eval) {
               // don't do this if it's the first time through
+              std::cout << "param_index "<< param_index << std::endl;
+              std::cout << "dp[param_index] "<< dp[param_index] << std::endl;
               dp[param_index] *= 1.1;            
           }
           // next parameter
@@ -91,7 +107,9 @@ void PID::UpdateError(double cte) {
       }
       else {
           // set it back, reduce dp[i], move on to next parameter
-          AddToParameterAtIndex(param_index, dp[param_index]);      
+          AddToParameterAtIndex(param_index, dp[param_index]);
+          std::cout << "param_index "<< param_index << std::endl;
+          std::cout << "dp[param_index] "<< dp[param_index] << std::endl;      
           dp[param_index] *= 0.9;
           // next parameter
           param_index = (param_index + 1) % 3;
@@ -99,7 +117,17 @@ void PID::UpdateError(double cte) {
       }
       total_err = 0;
       std::cout << "new parameters" << std::endl;
-      std::cout << "P: " << Kp << ", I: " << Ki << ", D: " << Kd << std::endl;        
+      std::cout << "P: " << Kp << ", I: " << Ki << ", D: " << Kd << std::endl;  
+      double dp_sum = 0;
+      for (int i; i < 3; i++){
+        dp_sum += dp[i];
+      }      
+      if (dp_sum < tolerance){
+        std::cout << "Tolerance is reached" << std::endl;
+        std::cout << "final parameters" << std::endl;
+        std::cout << "P: " << Kp << ", I: " << Ki << ", D: " << Kd << std::endl;
+        set_twiddle = false; 
+      }
   }
   
   step++;
