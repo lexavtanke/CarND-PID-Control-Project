@@ -26,19 +26,18 @@ void PID::Init(double Kp_, double Ki_, double Kd_) {
   PID::p_err = 0.0;
 
   // init twiddling params
-  set_twiddle = true;
-  dp = {0.05*Kp, 0.05*Ki, 0.05*Kd};
+  set_twiddle = false;
+  double tw_denom = 0.1;
+  dp = {tw_denom*Kp, tw_denom*Kd, tw_denom*Ki};
   total_err = 0;
   step = 1;
   param_index = 2;
   best_err = std::numeric_limits<double>::max();
   n_ajust = 100;
-  n_eval = 200;
+  n_eval = 1000;
   tried_adding = false;
   tried_subtracting = false;
-  tolerance = 0.001;
-  eval_phase = true;
-  ajust_phase = false;
+  tolerance = 0.02;
 
 }
 
@@ -97,17 +96,24 @@ void PID::UpdateError(double cte) {
       }
       if (!tried_adding && !tried_subtracting) {
           // try adding dp[i] to params[i]
+          std::cout << "try adding "<< std::endl;
+          std::cout << "param_index "<< param_index << std::endl;
+          std::cout << "dp[param_index] "<< dp[param_index] << std::endl;
           AddToParameterAtIndex(param_index, dp[param_index]);
           tried_adding = true;
       }
       else if (tried_adding && !tried_subtracting) {
           // try subtracting dp[i] from params[i]
+          std::cout << "try substracting "<<  std::endl;
+          std::cout << "param_index "<< param_index << std::endl;
+          std::cout << "dp[param_index] "<< dp[param_index] << std::endl;
           AddToParameterAtIndex(param_index, -2 * dp[param_index]);     
           tried_subtracting = true;         
       }
       else {
           // set it back, reduce dp[i], move on to next parameter
           AddToParameterAtIndex(param_index, dp[param_index]);
+          std::cout << "put it back "<< std::endl;
           std::cout << "param_index "<< param_index << std::endl;
           std::cout << "dp[param_index] "<< dp[param_index] << std::endl;      
           dp[param_index] *= 0.9;

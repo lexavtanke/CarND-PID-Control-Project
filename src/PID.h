@@ -67,7 +67,6 @@ class PID {
   double tolerance;
   double total_err, best_err;
   bool set_twiddle;
-  bool ajust_phase, eval_phase;
   bool tried_adding, tried_subtracting;
 };
 
