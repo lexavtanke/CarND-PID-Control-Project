@@ -11,7 +11,11 @@ PID control is the basic technic in automatic control of some parameters. The ma
 
 Tuning final hyperparameters. First of all I tune them by hands because car wasn't able to go through the track. I stated by increasing the P till the oscilations and the I started adding D component to reduce occilations. So then Car can go atleast one lap I turned on the tweddling algorithm.
 
-Final parameters are P I D It takes  steps to find them.
+I try different coefficiets (from 0.5 to 0.1) for tuning parameters (line 30-31 in PID.cpp), more stability in convergence was achived with 0.1. Also I try different number of steps (lines 36-27 in PID.cpp) for error evaluating and the best result was achived with 1100 steps in sum that is near the lenth of one lap. 
+
+Final parameters are P = 0.117, I = 0.001, D = 1.521.
+
+Here is [video](./video.mp4) control with these parameters.
 
 
 
