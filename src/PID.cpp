@@ -26,7 +26,7 @@ void PID::Init(double Kp_, double Ki_, double Kd_) {
   PID::p_err = 0.0;
 
   // init twiddling params
-  set_twiddle = false;
+  set_twiddle = true;
   double tw_denom = 0.1;
   dp = {tw_denom*Kp, tw_denom*Kd, tw_denom*Ki};
   total_err = 0;
@@ -78,6 +78,7 @@ void PID::UpdateError(double cte) {
   // if (set_twiddle && ajust_phase && step < n_ajust + n_eval){
   if (set_twiddle && step %(n_ajust + n_eval) == 0 ){
       // best_err /= n_ajust;
+      total_err /= n_ajust + n_eval;
       std::cout << "step: " << step << std::endl;
       std::cout << "total error: " << total_err << std::endl;
       std::cout << "best error: " << best_err << std::endl;
